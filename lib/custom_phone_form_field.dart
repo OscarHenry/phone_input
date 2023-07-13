@@ -38,6 +38,8 @@ class CustomPhoneFormField extends StatefulWidget {
 class _CustomPhoneFormFieldState extends State<CustomPhoneFormField> {
   FormFieldState<PhoneNumber>? state;
   late final PhoneNumber _initialValue;
+  late final PhoneController _controller;
+
   @override
   void initState() {
     widget.focusNode?.addListener(focusListener);
@@ -46,6 +48,7 @@ class _CustomPhoneFormFieldState extends State<CustomPhoneFormField> {
     } else {
       _initialValue = const PhoneNumber(isoCode: IsoCode.US, nsn: '');
     }
+    _controller = PhoneController(_initialValue);
     super.initState();
   }
 
@@ -123,10 +126,11 @@ class _CustomPhoneFormFieldState extends State<CustomPhoneFormField> {
                 const SizedBox(width: 24),
                 Expanded(
                   child: PhoneFormField(
-                    initialValue: state.widget.initialValue,
+                    controller: _controller,
                     shouldFormat: true,
                     focusNode: widget.focusNode,
                     defaultCountry: IsoCode.US,
+                    textAlignVertical: TextAlignVertical.center,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: fColor,
@@ -134,8 +138,17 @@ class _CustomPhoneFormFieldState extends State<CustomPhoneFormField> {
                       helperStyle: TextStyle(color: helperColor),
                       errorStyle: TextStyle(color: errorColor),
                       focusedErrorBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: pColor),
-                      ),
+                          borderSide: BorderSide(color: pColor)),
+                      errorBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: errorBorderColor)),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                      suffixIcon: _controller.value!.nsn.isNotEmpty
+                          ? IconButton(
+                              onPressed: _controller.reset,
+                              icon: const Icon(Icons.clear),
+                            )
+                          : null,
+                      suffixIconColor: Colors.black,
                     ),
                     autovalidateMode: AutovalidateMode.always,
                     isCountryChipPersistent: false,
@@ -189,6 +202,24 @@ class _CustomPhoneFormFieldState extends State<CustomPhoneFormField> {
 
     if (widget.focusNode?.hasFocus == true) {
       base = pColor;
+    }
+
+    if (widget.focusNode?.hasFocus == false &&
+        state?.isValid == false &&
+        state?.value!.nsn.isEmpty == true) {
+      base = hColor;
+    }
+
+    return base;
+  }
+
+  Color get errorBorderColor {
+    Color base = eColor;
+
+    if (widget.focusNode?.hasFocus == false &&
+        state?.isValid == false &&
+        state?.value!.nsn.isEmpty == true) {
+      base = hColor;
     }
 
     return base;
